@@ -6,7 +6,7 @@ VIRTUAL_WIDTH = 432
 VIRTUAL_HEIGHT = 243
 
 LFONT_SIZE = 32
-SFONT_SIZE = 8
+SFONT_SIZE = 16
 
 PADDLE_MIN_Y = 0
 PADDLE_MAX_Y = VIRTUAL_HEIGHT - 20 -- (Paddle height)
@@ -27,6 +27,16 @@ function love.load()
     paddle1YPos = 10
     paddle2YPos = VIRTUAL_HEIGHT - 20 - 10
 
+    math.randomseed(os.time())
+
+    ballX = VIRTUAL_WIDTH/2 - 2
+    ballY = VIRTUAL_HEIGHT/2 - 2
+
+    ballDX = math.random(2) == 1 and 100 or -100
+    ballDY = math.random(-50, 50)
+
+    gamestate = 'start'
+
     love.window.setMode(WINDOW_WIDTH, WINDOW_HEIGHT, {
         resizable = false,
         fullscreen = false,
@@ -39,35 +49,47 @@ end
 function love.keypressed(key)
     if key == 'e' then
         love.event.quit()
+    elseif key == 'return' then
+        if gamestate == 'start' then
+            gamestate = 'play'
+        else
+            gamestate = 'start'
+        end
+
+        ballX = VIRTUAL_WIDTH/2 - 2
+        ballY = VIRTUAL_HEIGHT/2 - 2
+
+        ballDX = math.random(2) == 1 and 100 or -100
+        ballDY = math.random(-50, 50)
     end
 end
 
 function love.update(dt)
     if love.keyboard.isDown('w') then
-        paddle1YPos = paddle1YPos - (PADDLE_SPEED * dt)
-        if paddle1YPos < PADDLE_MIN_Y then
-            paddle1YPos = PADDLE_MIN_Y
-        end
+        paddle1YPos = math.max(paddle1YPos - PADDLE_SPEED * dt, 0)
     end
 
     if love.keyboard.isDown('s') then
-        paddle1YPos = paddle1YPos + (PADDLE_SPEED * dt)
-        if paddle1YPos > PADDLE_MAX_Y then
-            paddle1YPos = PADDLE_MAX_Y
-        end
+        paddle1YPos = math.min(paddle1YPos + PADDLE_SPEED * dt, PADDLE_MAX_Y)
     end
 
     if love.keyboard.isDown('up') then
-        paddle2YPos = paddle2YPos - (PADDLE_SPEED * dt)
-        if paddle2YPos < PADDLE_MIN_Y then
-            paddle2YPos = PADDLE_MIN_Y
-        end
+        paddle2YPos = math.max(paddle2YPos - PADDLE_SPEED * dt, 0)
     end
 
     if love.keyboard.isDown('down') then
-        paddle2YPos = paddle2YPos + (PADDLE_SPEED * dt)
-        if paddle2YPos > PADDLE_MAX_Y then
-            paddle2YPos = PADDLE_MAX_Y
+        paddle2YPos = math.min(paddle2YPos + PADDLE_SPEED * dt, PADDLE_MAX_Y)
+    end
+
+    if gamestate == 'play' then
+        ballX = ballX + ballDX * dt
+        if ballX < 0 or ballX > VIRTUAL_WIDTH - 4 then
+            ballDX = ballDX * -1
+        end
+
+        ballY = ballY + ballDY * dt
+        if ballY < 0 or ballY > VIRTUAL_HEIGHT - 4 then
+            ballDY = ballDY * -1
         end
     end
 end
@@ -89,6 +111,9 @@ function love.draw()
     love.graphics.rectangle('fill', VIRTUAL_WIDTH - 14, paddle2YPos, 4, 20)
 
     -- Ball
-    love.graphics.rectangle('fill', VIRTUAL_WIDTH/2 - 2, VIRTUAL_HEIGHT/2 -2, 4, 4)
+    love.graphics.rectangle('fill', ballX, ballY, 4, 4)
+
+    love.graphics.setFont(smallFont)
+    love.graphics.printf(gamestate, 0, 10 + 21, VIRTUAL_WIDTH, 'center')
     push.finish()
 end
