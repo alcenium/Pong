@@ -93,8 +93,7 @@ end
 function love.draw()
     push.start()
     love.graphics.clear(33/255, 60/255, 81/255, 1)
-    love.graphics.setColor(255/255, 255/255, 255/255, 255/255)
-
+    
     love.graphics.setFont(largeFont)
     love.graphics.printf("Pong Clone 2026!", 0, 10, VIRTUAL_WIDTH, 'center')
     
@@ -110,7 +109,15 @@ function love.draw()
     love.graphics.setFont(smallFont)
     love.graphics.printf(gamestate, 0, 10 + 21, VIRTUAL_WIDTH, 'center')
 
-    love.graphics.setColor(0, 255/255, 0, 255/255)
-    love.graphics.printf('FPS: ' .. love.timer.getFPS(), 0, 5, VIRTUAL_WIDTH, 'center')
+    displayFPS()
+    
     push.finish()
+end
+
+function displayFPS()
+    love.graphics.setFont(smallFont)
+    love.graphics.setColor(0, 255/255, 0, 255/255)
+
+    love.graphics.printf('FPS: ' .. love.timer.getFPS(), 0, 5, VIRTUAL_WIDTH, 'center')
+    love.graphics.setColor(1,1,1,1)
 end
