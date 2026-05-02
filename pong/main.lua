@@ -11,8 +11,8 @@ SFONT_SIZE = 16
 PADDLE_MIN_Y = 0
 PADDLE_MAX_Y = VIRTUAL_HEIGHT - 20 -- (Paddle height)
 
-PADDLE_SPEED = 150 -- px/s
-
+require 'Ball'
+require 'Paddle'
 push = require 'push'
 
 function love.load()
@@ -29,18 +29,25 @@ function love.load()
 
     math.randomseed(os.time())
 
-    ballX = VIRTUAL_WIDTH/2 - 2
-    ballY = VIRTUAL_HEIGHT/2 - 2
+    paddle1 = Paddle:new{x = 10, y = 10}
+    paddle2 = Paddle:new{
+        x = VIRTUAL_WIDTH - 10 - 4,  -- Spacing (10) and paddle width (4)
+        y = VIRTUAL_HEIGHT - 10 - 20 -- Spacing (10) and paddle height (20)
+    }
 
-    ballDX = math.random(2) == 1 and 100 or -100
-    ballDY = math.random(-50, 50)
+    ball = Ball:new{
+        x = VIRTUAL_WIDTH/2 - 2,
+        y = VIRTUAL_HEIGHT/2 - 2,
+        dx = math.random(2) == 1 and 100 or -100,
+        dy = math.random(-50, 50)
+    }
 
     gamestate = 'start'
 
     love.window.setMode(WINDOW_WIDTH, WINDOW_HEIGHT, {
         resizable = false,
         fullscreen = false,
-        vsync = false
+        vsync = true
     })
 
     push.setupScreen(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, { upscale = 'normal' })
@@ -49,6 +56,7 @@ end
 function love.keypressed(key)
     if key == 'e' then
         love.event.quit()
+
     elseif key == 'return' then
         if gamestate == 'start' then
             gamestate = 'play'
@@ -56,47 +64,37 @@ function love.keypressed(key)
             gamestate = 'start'
         end
 
-        ballX = VIRTUAL_WIDTH/2 - 2
-        ballY = VIRTUAL_HEIGHT/2 - 2
-
-        ballDX = math.random(2) == 1 and 100 or -100
-        ballDY = math.random(-50, 50)
+        ball:reset()
     end
 end
 
 function love.update(dt)
     if love.keyboard.isDown('w') then
-        paddle1YPos = math.max(paddle1YPos - PADDLE_SPEED * dt, 0)
+        paddle1:moveUp(dt)
     end
 
     if love.keyboard.isDown('s') then
-        paddle1YPos = math.min(paddle1YPos + PADDLE_SPEED * dt, PADDLE_MAX_Y)
+        paddle1:moveDown(dt)
     end
 
     if love.keyboard.isDown('up') then
-        paddle2YPos = math.max(paddle2YPos - PADDLE_SPEED * dt, 0)
+        paddle2:moveUp(dt)
     end
 
     if love.keyboard.isDown('down') then
-        paddle2YPos = math.min(paddle2YPos + PADDLE_SPEED * dt, PADDLE_MAX_Y)
+        paddle2:moveDown(dt)
     end
 
     if gamestate == 'play' then
-        ballX = ballX + ballDX * dt
-        if ballX < 0 or ballX > VIRTUAL_WIDTH - 4 then
-            ballDX = ballDX * -1
-        end
-
-        ballY = ballY + ballDY * dt
-        if ballY < 0 or ballY > VIRTUAL_HEIGHT - 4 then
-            ballDY = ballDY * -1
-        end
+        ball:update(dt)
     end
 end
 
 function love.draw()
     push.start()
     love.graphics.clear(33/255, 60/255, 81/255, 1)
+    love.graphics.setColor(255/255, 255/255, 255/255, 255/255)
+
     love.graphics.setFont(largeFont)
     love.graphics.printf("Pong Clone 2026!", 0, 10, VIRTUAL_WIDTH, 'center')
     
@@ -104,16 +102,15 @@ function love.draw()
     love.graphics.printf(player1Score, 0, VIRTUAL_HEIGHT/4, VIRTUAL_WIDTH/2 - 10, 'right')
     love.graphics.printf(player2Score, VIRTUAL_WIDTH/2 + 10, VIRTUAL_HEIGHT/4, VIRTUAL_WIDTH, 'left')
 
-    -- First paddle
-    love.graphics.rectangle('fill', 10, paddle1YPos, 4, 20)
+    paddle1:draw()
+    paddle2:draw()
 
-    -- Second paddle
-    love.graphics.rectangle('fill', VIRTUAL_WIDTH - 14, paddle2YPos, 4, 20)
-
-    -- Ball
-    love.graphics.rectangle('fill', ballX, ballY, 4, 4)
+    ball:draw()
 
     love.graphics.setFont(smallFont)
     love.graphics.printf(gamestate, 0, 10 + 21, VIRTUAL_WIDTH, 'center')
+
+    love.graphics.setColor(0, 255/255, 0, 255/255)
+    love.graphics.printf('FPS: ' .. love.timer.getFPS(), 0, 5, VIRTUAL_WIDTH, 'center')
     push.finish()
 end
