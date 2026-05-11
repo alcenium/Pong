@@ -16,6 +16,10 @@ function Paddle:moveDown(dt)
     self.y = math.min(PADDLE_MAX_Y, self.y + self.speed * dt)
 end
 
+function Paddle:getCollidePos(object)
+    return (object.y + object.height/2) - (self.y + self.height/2)
+end
+
 function Paddle:new(object)
     object = object or {}
     setmetatable(object, self)

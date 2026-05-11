@@ -4,13 +4,7 @@ function Ball:draw()
     love.graphics.rectangle('fill', self.x, self.y, self.width, self.height)
 end
 
-function Ball:update(dt)
-    if self.x < 0 or self.x > VIRTUAL_WIDTH - 4 then
-        self.dx = self.dx * -1
-    end
-    if self.y < 0 or self.y > VIRTUAL_HEIGHT - 4 then
-        self.dy = self.dy * -1
-    end
+function Ball:move(dt)
     self.x = self.x + self.dx * dt
     self.y = self.y + self.dy * dt
 end
@@ -21,6 +15,20 @@ function Ball:reset()
 
     self.dx = math.random(2) == 1 and 100 or -100
     self.dy = math.random(-50, 50)
+end
+
+function Ball:collide(rect)
+    -- Not coliding on the left side of both boxes
+    if self.x + self.width < rect.x or rect.x + rect.width < self.x then
+        return false
+    end
+
+    -- Not coliding on the top side of both boxes
+    if self.y + self.height < rect.y or rect.y + rect.height < self.y then
+        return false
+    end
+
+    return true
 end
 
 function Ball:new(object)

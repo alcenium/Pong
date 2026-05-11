@@ -86,7 +86,44 @@ function love.update(dt)
     end
 
     if gamestate == 'play' then
-        ball:update(dt)
+        ball:move(dt)
+
+        -- Paddle colision check
+        if ball:collide(paddle1) then
+            print(paddle1:getCollidePos(ball))
+            ball.dy = ball.dy + paddle1:getCollidePos(ball)*10
+            ball.dx = -ball.dx * 1.03
+            ball.x = paddle1.x + paddle1.width + 1
+        end
+        if ball:collide(paddle2) then
+            print(paddle2:getCollidePos(ball))
+            ball.dy = ball.dy + paddle2:getCollidePos(ball)*10
+            ball.dx = -ball.dx * 1.03
+            ball.x = paddle2.x - ball.width - 1
+        end
+
+        -- Left and right wall colision check
+        if ball.x < 0 then 
+            gamestate = 'start'
+            player2Score = player2Score + 1
+            ball:reset()
+        end
+        if ball.x + ball.width > VIRTUAL_WIDTH then
+            gamestate = 'start'
+            player1Score = player1Score + 1
+            ball:reset()
+        end
+
+        -- Top and bottom wall colision check
+        if ball.y < 0 then ball.dy = -ball.dy; ball.y = 0 end
+        if ball.y + ball.height > VIRTUAL_HEIGHT then ball.dy = -ball.dy; ball.y = VIRTUAL_HEIGHT - ball.height end
+
+        if player1Score >= 3 then
+            triggerWinState('player1')
+        end
+        if player2Score >= 3 then
+            triggerWinState('player2')
+        end
     end
 end
 
@@ -97,20 +134,24 @@ function love.draw()
     love.graphics.setFont(largeFont)
     love.graphics.printf("Pong Clone 2026!", 0, 10, VIRTUAL_WIDTH, 'center')
     
+    if (gamestate == 'win') then
+    love.graphics.printf(winner .. ' won!', 0, VIRTUAL_HEIGHT/2 - LFONT_SIZE/2, VIRTUAL_WIDTH, 'center')
+    else
     --Scores
     love.graphics.printf(player1Score, 0, VIRTUAL_HEIGHT/4, VIRTUAL_WIDTH/2 - 10, 'right')
     love.graphics.printf(player2Score, VIRTUAL_WIDTH/2 + 10, VIRTUAL_HEIGHT/4, VIRTUAL_WIDTH, 'left')
 
+    ball:draw()
+    end
+
     paddle1:draw()
     paddle2:draw()
-
-    ball:draw()
 
     love.graphics.setFont(smallFont)
     love.graphics.printf(gamestate, 0, 10 + 21, VIRTUAL_WIDTH, 'center')
 
     displayFPS()
-    
+
     push.finish()
 end
 
@@ -120,4 +161,13 @@ function displayFPS()
 
     love.graphics.printf('FPS: ' .. love.timer.getFPS(), 0, 5, VIRTUAL_WIDTH, 'center')
     love.graphics.setColor(1,1,1,1)
+end
+
+function triggerWinState(player)
+    winner = player
+    gamestate = 'win'
+    ball:reset()
+
+    player1Score = 0
+    player2Score = 0
 end
