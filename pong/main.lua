@@ -51,7 +51,7 @@ function love.load()
     gamestate = 'start'
 
     love.window.setMode(WINDOW_WIDTH, WINDOW_HEIGHT, {
-        resizable = false,
+        resizable = true,
         fullscreen = false,
         vsync = true
     })
@@ -168,6 +168,10 @@ function love.draw()
     displayFPS()
 
     push.finish()
+end
+
+function love.resize(width, height)
+    push.resize(width, height)
 end
 
 function displayFPS()
