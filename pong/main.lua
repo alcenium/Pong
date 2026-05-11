@@ -18,6 +18,12 @@ push = require 'push'
 function love.load()
     love.graphics.setDefaultFilter('nearest', 'nearest')
 
+    sounds = {
+        ['paddle'] = love.audio.newSource('sounds/paddle.wav','static'),
+        ['wall'] = love.audio.newSource('sounds/wall.wav','static'),
+        ['lose'] = love.audio.newSource('sounds/lose.wav','static')
+    }
+
     largeFont = love.graphics.newFont(FONT_FILE, LFONT_SIZE)
     smallFont = love.graphics.newFont(FONT_FILE, SFONT_SIZE)
 
@@ -90,16 +96,16 @@ function love.update(dt)
 
         -- Paddle colision check
         if ball:collide(paddle1) then
-            print(paddle1:getCollidePos(ball))
             ball.dy = ball.dy + paddle1:getCollidePos(ball)*10
             ball.dx = -ball.dx * 1.03
             ball.x = paddle1.x + paddle1.width + 1
+            love.audio.play(sounds['paddle'])
         end
         if ball:collide(paddle2) then
-            print(paddle2:getCollidePos(ball))
             ball.dy = ball.dy + paddle2:getCollidePos(ball)*10
             ball.dx = -ball.dx * 1.03
             ball.x = paddle2.x - ball.width - 1
+            love.audio.play(sounds['paddle'])
         end
 
         -- Left and right wall colision check
@@ -107,16 +113,25 @@ function love.update(dt)
             gamestate = 'start'
             player2Score = player2Score + 1
             ball:reset()
+            love.audio.play(sounds['lose'])
         end
         if ball.x + ball.width > VIRTUAL_WIDTH then
             gamestate = 'start'
             player1Score = player1Score + 1
             ball:reset()
+            love.audio.play(sounds['lose'])
         end
 
         -- Top and bottom wall colision check
-        if ball.y < 0 then ball.dy = -ball.dy; ball.y = 0 end
-        if ball.y + ball.height > VIRTUAL_HEIGHT then ball.dy = -ball.dy; ball.y = VIRTUAL_HEIGHT - ball.height end
+        if ball.y < 0 then
+            ball.dy = -ball.dy
+            ball.y = 0
+            love.audio.play(sounds['wall']); end
+        if ball.y + ball.height > VIRTUAL_HEIGHT then
+            ball.dy = -ball.dy
+            ball.y = VIRTUAL_HEIGHT - ball.height
+            love.audio.play(sounds['wall'])
+        end
 
         if player1Score >= 3 then
             triggerWinState('player1')
